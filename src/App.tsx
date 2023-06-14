@@ -1,6 +1,6 @@
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { publicRoutes, protectedRoutes } from './pages/index'
-// import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProtectedRoute } from './components/index';
 import './App.css'
 
 function App() {
@@ -14,13 +14,13 @@ function App() {
           <Route path={data.path} element={data.component} key={index} />
         ))
       }
-      {/* <Route element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute />}>
           {
             protectedRoutes.map((data, index) => (
-              <Route path={data.path} element={<Main Child={data.component} title={data.title}/>} key={publicRoutes.length + index}/>
+              <Route path={data.path} element={data.component} key={publicRoutes.length + index}/>
             ))
           }
-        </Route> */}
+        </Route>
     </Routes>
   )
 }
