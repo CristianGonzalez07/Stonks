@@ -42,8 +42,7 @@ const LoginPage = () => {
 
   return (
     !user ? (
-      <div className='w-full h-full flex justify-center items-center'>
-        <div className="w-[50%] h-[70%]">
+        <div>
           <Wave>
             <Form
               inputs={inputs}
@@ -53,7 +52,6 @@ const LoginPage = () => {
               error={error}
             />
           </Wave>
-        </div>
       </div>
     ) : (
       <Navigate to="/" />
