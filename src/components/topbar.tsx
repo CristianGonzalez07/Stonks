@@ -10,7 +10,7 @@ import { useAuth } from '../hooks/useAuth';
 import Menu from '@mui/material/Menu';
 import Fade from '@mui/material/Fade';
 
-export default function TopBar() {
+export default function TopBar({title}:{title:string}) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ export default function TopBar() {
           variant="h6" component="div" sx={{ flexGrow: 1,cursor:"pointer" }}
           onClick={() => navigate("/login")}  
         >
-          Mis Acciones
+          {title}
         </Typography>  
         <div>
         <Typography variant="h6" component="span" sx={{ flexGrow: 1 }}>
