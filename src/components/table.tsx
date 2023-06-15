@@ -1,6 +1,7 @@
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TablePagination } from "@mui/material";
-import { useState } from "react";
 import { ArrowUpward, ArrowDownward } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 interface Row {
   id: number;
@@ -23,11 +24,12 @@ const columnTranslations: { [key in keyof Cols]: string } = {
   currency: "Moneda",
 };
 
-const TableComponent = ({ stocks }: { stocks: Row[] }) => {
+const TableComponent = ({ stocks, handleDelete }: { stocks: Row[], handleDelete: (rowId: number) => void }) => {
   const [sortColumn, setSortColumn] = useState<keyof Row | "">("symbol");
   const [sortDirection, setSortDirection] = useState<string>("asc");
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
+  const navigate = useNavigate();
 
   const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
     setPage(newPage);
@@ -76,7 +78,7 @@ const TableComponent = ({ stocks }: { stocks: Row[] }) => {
 
   return (
     <>
-      <TableContainer component={Paper} sx={{ marginTop: "30px", height:"600px" }}>
+      <TableContainer component={Paper} sx={{ marginTop: "30px", height: "600px" }}>
         <Table sx={{ minWidth: 800 }} aria-label="simple table">
           <TableHead>
             <TableRow>
@@ -99,10 +101,16 @@ const TableComponent = ({ stocks }: { stocks: Row[] }) => {
             {paginatedStocks.map((row: Row) => (
               <TableRow key={row.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
                 {cols.map((col: keyof Row) => (
-                  <TableCell key={col}>{row[col]}</TableCell>
+                  <TableCell key={col}>
+                    {col === "symbol" ?
+                      <Button variant="text" onClick={() => navigate(`/stock-details/${row[col]}`)}>
+                        {row[col]}
+                      </Button>
+                      : row[col]}
+                  </TableCell>
                 ))}
                 <TableCell>
-                  <Button variant="text" onClick={() => console.log(row.id)}>
+                  <Button variant="text" onClick={() => handleDelete(row.id)}>
                     Eliminar
                   </Button>
                 </TableCell>
