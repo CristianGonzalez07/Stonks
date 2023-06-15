@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsExporting from 'highcharts/modules/exporting';
+import dayjs from 'dayjs';
 
 interface stockInfo {
   datetime: string;
@@ -45,7 +46,7 @@ const LineChart = ({data, interval, currency}:{data:stockInfo[] | undefined, int
     });
 
     const chartData = data?.map(function(item) {
-      const date = item.datetime;
+      const date = dayjs(item.datetime).valueOf();
       const close = parseFloat(item.close);
       return [date, close];
     });
