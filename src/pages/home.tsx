@@ -98,7 +98,7 @@ const Home = () => {
   };
 
   return (
-    <MainLayout>
+    <MainLayout headerTitle="Mis Acciones">
       <StockSearcher handleAdd={handleAdd} />
       <Table stocks={stocks} handleDelete={handleDelete} />
       <Snackbar
