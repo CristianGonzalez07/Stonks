@@ -6,6 +6,12 @@ import { useLocation } from 'react-router-dom';
 import { Box, Grid } from '@mui/material';
 import axios from 'axios';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 
 interface stockInfo {
   datetime: string;
@@ -23,9 +29,10 @@ interface stockInput {
 }
 
 const Historical: string = "Histórico";
+const Timezone: string = "America/New_York";
 
 const StockDetails = () => {
-  const date = dayjs();
+  const date = dayjs().startOf('day');;
   const initialDate = date.format('YYYY-MM-DD HH:mm:ss')
   const location = useLocation();
   const [stockSymbol, setStockSymbol] = useState<string>(location.pathname.split('/')[2]);
@@ -37,9 +44,12 @@ const StockDetails = () => {
   const [dataChart, setDataChart] = useState<stockInfo[]>()
   const [openAlert, setOpenAlert] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChangeType = (event: SelectChangeEvent) => {
     setType(event.target.value);
+    setStartDate("");
+    setEndDate("");
   };
 
   function Transition(props: any) {
@@ -49,6 +59,28 @@ const StockDetails = () => {
   const handleChangeInterval = (event: SelectChangeEvent) => {
     setIntervalTime(event.target.value);
   };
+
+  const fetchData = async () => {
+    if (type !== Historical && initialDate !== "") {
+      try {
+        let actualDate = dayjs();
+        let actualDateString = actualDate.format('YYYY-MM-DD HH:mm:ss')
+        setLoading(true)
+        const response = await axios.get(`${import.meta.env.VITE_TWELVE_API_URL}/time_series?symbol=${stockSymbol}&interval=${intervalTime}min&start_date=${initialDate}&end_date=${dayjs(actualDateString).tz(Timezone)}&apikey=${import.meta.env.VITE_TWELVE_API_KEY}`);
+        if (response.data.status === "ok") {
+          let data = response.data.values;
+          setDataChart(data.reverse())
+        }
+        setLoading(false)
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);  
 
   useEffect(() => {
     setStockSymbol(location.pathname.split('/')[2]);
@@ -74,7 +106,7 @@ const StockDetails = () => {
       (async () => {
         try {
           setLoading(true)
-          const response = await axios.get(`${import.meta.env.VITE_TWELVE_API_URL}/time_series?symbol=${stockSymbol}&interval=${intervalTime}min&start_date=${startDate}&end_date=${endDate}&apikey=${import.meta.env.VITE_TWELVE_API_KEY}`);
+          const response = await axios.get(`${import.meta.env.VITE_TWELVE_API_URL}/time_series?symbol=${stockSymbol}&interval=${intervalTime}min&start_date=${dayjs(startDate).tz(Timezone)}&end_date=${dayjs(endDate).tz(Timezone)}&apikey=${import.meta.env.VITE_TWELVE_API_KEY}`);
           if (response.data.status === "ok") {
             let data = response.data.values;
             setDataChart(data.reverse())
@@ -89,37 +121,16 @@ const StockDetails = () => {
       })();
     }
   }, [type, intervalTime, startDate, endDate]);
-
-  const [error, setError] = useState<string | null>(null);
-
+  
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (type !== Historical && initialDate !== "") {
-        (async () => {
-          try {
-            let actualDate = dayjs();
-            let actualDateString = actualDate.format('YYYY-MM-DD HH:mm:ss')
-            setLoading(true)
-            const response = await axios.get(`${import.meta.env.VITE_TWELVE_API_URL}/time_series?symbol=${stockSymbol}&interval=${intervalTime}min&start_date=${initialDate}&end_date=${actualDateString}&apikey=${import.meta.env.VITE_TWELVE_API_KEY}`);
-            console.log({response})
-            if (response.data.status === "ok") {
-              let data = response.data.values;
-              setDataChart(data.reverse())
-            }
-            setLoading(false)
-          } catch (error) {
-            console.error('Error:', error);
-          }
-          return true;
-        })();
-      }
-    }, 60000 * parseInt(intervalTime));
-
+    fetchData();
+  
+    const interval = setInterval(fetchData, 60000 * parseInt(intervalTime));
+  
     return () => {
       clearInterval(interval);
     };
-  }, []);
-
+  }, [type, initialDate]);  
 
   const errorMessage = useMemo(() => {
     switch (error) {
@@ -184,7 +195,7 @@ const StockDetails = () => {
                   selectedDate={endDate ? dayjs(endDate) : null}
                   label="Hasta"
                   format="DD-MM-YYYY HH:mm"
-                  minDate={null}
+                  minDate={dayjs(startDate)}
                   handleChange={(date: any) => setEndDate((date.format('YYYY-MM-DD HH:mm:ss')))}
                   handleError={(newError: string | null) => setError(newError || '')}
                   errorMessage={errorMessage}
@@ -196,7 +207,7 @@ const StockDetails = () => {
         </Grid>
       </Box>
       <Box py={10}>
-        <LineChart data={dataChart} interval={parseInt(intervalTime)} currency={stock?.currency || ""} />
+        <LineChart originTimezone={Timezone} data={dataChart} interval={parseInt(intervalTime)} currency={stock?.currency || ""} />
       </Box>
       <Snackbar
         open={openAlert}
