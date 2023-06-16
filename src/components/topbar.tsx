@@ -4,8 +4,8 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import AccountCircle from '@mui/icons-material/AccountCircle';
+import { useNavigate, useLocation } from "react-router-dom";
 import MenuItem from '@mui/material/MenuItem';
-import { useNavigate } from "react-router-dom";
 import { useAuth } from '../hooks/useAuth';
 import Menu from '@mui/material/Menu';
 import Fade from '@mui/material/Fade';
@@ -14,7 +14,7 @@ export default function TopBar({title}:{title:string}) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
+  const location = useLocation();
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -58,6 +58,7 @@ export default function TopBar({title}:{title:string}) {
             TransitionComponent={Fade}
           >
             <MenuItem onClick={() => logout()}>Cerrar Sesión</MenuItem>
+            {location.pathname !== "/" && <MenuItem onClick={() => navigate("/")}>Inicio</MenuItem>}
           </Menu>
         </div>
       </Toolbar>

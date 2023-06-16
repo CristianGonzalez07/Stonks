@@ -4,12 +4,11 @@ import { useLocalStorage } from "./useLocalStorage";
 
 interface User {
   name: string;
-  id: string;
 }
 
 interface AuthContextProps {
   user: User | null;
-  login: (data: { name: string; id: string; token: string }) => void;
+  login: (data: { name: string; token: string }) => void;
   logout: () => void;
 }
 
@@ -24,8 +23,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
 
   // call this function when you want to authenticate the user
-  const login = (data: { name: string; id: string; token: string }) => {
-    const jsonData = { name: data.name, id: data.id };
+  const login = (data: { name: string; token: string }) => {
+    const jsonData = { name: data.name };
     setUser(jsonData);
     localStorage.setItem("token", data.token);
     navigate("/login");

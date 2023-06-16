@@ -1,8 +1,17 @@
 import { useEffect } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsExporting from 'highcharts/modules/exporting';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import tz from 'dayjs/plugin/timezone';
+import HighchartsReact from 'highcharts-react-official';
 
-interface stockInfo {
+dayjs.extend(utc);
+dayjs.extend(tz);
+
+HighchartsExporting(Highcharts);
+
+interface StockInfo {
   datetime: string;
   open: string;
   high: string;
@@ -11,22 +20,56 @@ interface stockInfo {
   volume: string;
 }
 
-HighchartsExporting(Highcharts);
-
-const LineChart = ({data, interval, currency}:{data:stockInfo[] | undefined, interval:number, currency:string}) => {
+const LineChart = ({
+  originTimezone,
+  data,
+  interval,
+  currency,
+}: {
+  originTimezone: string;
+  data: StockInfo[] | undefined;
+  interval: number;
+  currency: string;
+}) => {
   useEffect(() => {
     Highcharts.setOptions({
       lang: {
         months: [
-          'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+          'Enero',
+          'Febrero',
+          'Marzo',
+          'Abril',
+          'Mayo',
+          'Junio',
+          'Julio',
+          'Agosto',
+          'Septiembre',
+          'Octubre',
+          'Noviembre',
+          'Diciembre',
         ],
         weekdays: [
-          'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'
+          'Domingo',
+          'Lunes',
+          'Martes',
+          'Miércoles',
+          'Jueves',
+          'Viernes',
+          'Sábado',
         ],
         shortMonths: [
-          'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-          'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+          'Ene',
+          'Feb',
+          'Mar',
+          'Abr',
+          'May',
+          'Jun',
+          'Jul',
+          'Ago',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dic',
         ],
         rangeSelectorZoom: 'Período',
         rangeSelectorFrom: 'Desde',
@@ -41,99 +84,107 @@ const LineChart = ({data, interval, currency}:{data:stockInfo[] | undefined, int
         viewFullscreen: 'Ver en pantalla completa',
         exitFullscreen: 'Salir de pantalla completa',
         printChart: 'Imprimir gráfico',
-      }
-    });
-
-    const chartData = data?.map(function(item) {
-      const date = item.datetime;
-      const close = parseFloat(item.close);
-      return [date, close];
-    });
-
-    
-    // @ts-ignore
-    Highcharts.chart('container', {
-      chart: {
-        zoomType: 'x'
       },
+      global: {
+        useUTC: false,
+      },
+    });
+  }, []);
+
+  const chartData = data?.map(function (item) {
+    const originDate = dayjs.tz(item.datetime, originTimezone).toDate();
+    const date = originDate.getTime();
+    const close = parseFloat(item.close);
+    return [date, close];
+  });
+
+  const options: Highcharts.Options = {
+    chart: {
+      // @ts-ignore
+      zoomType: 'x',
+    },
+    title: {
+      text: 'Cotización',
+      align: 'left',
+    },
+    subtitle: {
+      text:
+        document.ontouchstart === undefined
+          ? 'Haz clic y arrastra en el área del gráfico para hacer zoom'
+          : 'Haz zoom en el gráfico con gestos de pellizco',
+      align: 'left',
+    },
+    xAxis: {
+      type: 'datetime',
+      tickInterval: interval * 60 * 1000,
+      labels: {
+        format: '{value:%d-%m-%Y %H:%M}',
+      },
+    },
+    yAxis: {
       title: {
-        text: 'Cotización',
-        align: 'left'
+        text: `Valor en ${currency}`,
       },
-      subtitle: {
-        text: document.ontouchstart === undefined ?
-          'Haz clic y arrastra en el área del gráfico para hacer zoom' :
-          'Haz zoom en el gráfico con gestos de pellizco',
-        align: 'left'
-      },
-      xAxis: {
-        type: 'datetime',
-        tickInterval: interval * 60 * 1000,
-        labels: {
-          format: '{value:%d-%m-%Y %H:%M}'
-        }
-      },
-      yAxis: {
-        title: {
-          text: `Valor en ${currency}`
-        }
-      },
-      legend: {
-        enabled: false
-      },
-      plotOptions: {
-        area: {
-          fillColor: {
-            linearGradient: {
-              x1: 0,
-              y1: 0,
-              x2: 0,
-              y2: 1
-            },
-            stops: [
-              [0, Highcharts.color('#ADD8E6').setOpacity(0.4).get('rgba')],
-              [1, Highcharts.color('#ADD8E6').setOpacity(0).get('rgba')]
-            ]
+    },
+    legend: {
+      enabled: false,
+    },
+    plotOptions: {
+      area: {
+        fillColor: {
+          linearGradient: {
+            x1: 0,
+            y1: 0,
+            x2: 0,
+            y2: 1,
           },
-          marker: {
-            radius: 2
+          stops: [
+            // @ts-ignore
+            [0, Highcharts.color('#ADD8E6').setOpacity(0.4).get('rgba')],
+            // @ts-ignore
+            [1, Highcharts.color('#ADD8E6').setOpacity(0).get('rgba')],
+          ],
+        },
+        marker: {
+          radius: 2,
+        },
+        lineWidth: 1,
+        states: {
+          hover: {
+            lineWidth: 1,
           },
-          lineWidth: 1,
-          states: {
-            hover: {
-              lineWidth: 1
-            }
-          },
-          threshold: null
-        }
+        },
+        threshold: null,
       },
-      series: [{
+    },
+    series: [
+      {
         type: 'area',
         name: 'Cotización',
-        data: chartData
-      }],
-      exporting: {
-        buttons: {
-          contextButton: {
-            menuItems: [
-              'viewFullscreen',
-              'exitFullscreen',
-              'printChart',
-              'separator',
-              'downloadCSV',
-              'downloadJPEG',
-              'downloadPDF',
-              'downloadPNG',
-              'downloadSVG',
-              'downloadXLS',
-            ]
-          }
-        }
-      }
-    });
-  }, [data]);
+        data: chartData,
+      },
+    ],
+    exporting: {
+      buttons: {
+        contextButton: {
+          menuItems: [
+            'viewFullscreen',
+            'exitFullscreen',
+            'printChart',
+            'separator',
+            'downloadCSV',
+            'downloadJPEG',
+            'downloadPDF',
+            'downloadPNG',
+            'downloadSVG',
+            'downloadXLS',
+          ],
+        },
+      },
+    },
+  };
 
-  return <div id="container" />;
+  return <HighchartsReact highcharts={Highcharts} options={options} />;
 };
 
 export default LineChart;
