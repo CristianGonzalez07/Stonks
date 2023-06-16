@@ -29,7 +29,7 @@ export default function TopBar({title}:{title:string}) {
         
         <Typography 
           variant="h6" component="div" sx={{ flexGrow: 1,cursor:"pointer" }}
-          onClick={() => navigate("/login")}  
+          onClick={() => navigate(window.location.pathname)}  
         >
           {title}
         </Typography>  
