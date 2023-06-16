@@ -99,7 +99,7 @@ const Home = () => {
 
   return (
     <MainLayout headerTitle="Mis Acciones">
-      <StockSearcher handleAdd={handleAdd} />
+      <StockSearcher handleAdd={handleAdd} loading={loading} setLoading={setLoading}/>
       <Table stocks={stocks} handleDelete={handleDelete} />
       <Snackbar
         open={openAlert}

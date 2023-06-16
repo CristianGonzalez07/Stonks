@@ -8,9 +8,8 @@ interface Stock {
   currency: string;
 }
 
-const StockSearcher = ({ handleAdd }: { handleAdd: (stock: Stock) => void }) => {
+const StockSearcher = ({ handleAdd, loading, setLoading }: { handleAdd: (stock: Stock) => void, loading:boolean, setLoading: (status: boolean) => void}) => {
   const [options, setOptions] = useState<Stock[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
 
   const [stock, setStock] = useState<Stock>({
     symbol: "",
