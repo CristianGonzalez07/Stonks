@@ -24,7 +24,9 @@ Stonks is a webapp that allows you to follow stock prices in real time. The name
 	```
 4. Create a .env file in the root of the project with the following structure:
 	```bash
-
+		VITE_API_URL=your_api_url
+		VITE_TWELVE_API_URL=https://api.twelvedata.com
+		VITE_TWELVE_API_KEY=your_apikey
 	```
 ### Usage
 
